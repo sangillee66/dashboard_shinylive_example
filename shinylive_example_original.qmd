@@ -389,8 +389,11 @@ leaflet(world_data) |>
 
 ## Row
 
+### Column {width="50%"}
+
 ```{shinylive-r}
 #| standalone: true
+#| context: setup
 #| include: false
 
 library(shiny)
@@ -435,6 +438,13 @@ sigungu_data <- sigungu_data |>
     index = as.numeric(index)
   )
 
+```
+
+```{shinylive-r}
+#| standalone: true
+#| context: data
+#| include: false
+
 region_code <- "00"
 korea_api <- getStatData(
   orgId = 101,
@@ -446,20 +456,28 @@ korea_api <- getStatData(
   objL2 = "ALL") |>
   filter(str_length(C2) == 3)
 
-ui <- fluidPage(
-  fluidRow(
-    column(width = 6,
-      leafletOutput("my_tmap", height="500px") 
-    ),
-    # Second column with 6 units wide
-    column(width = 6,
-      echarts4rOutput("my_echarts")
-    )
-  )
-)
+```
 
-server <- function(input, output, session){
-    output$my_tmap <- renderLeaflet({
+```{shinylive-r}
+#| standalone: true
+# h4("인구소멸위험지수(2022년)")
+leafletOutput("my_tmap", height="500px") 
+```
+
+### Column {width="50%"}
+
+```{shinylive-r}
+#| standalone: true
+# h4("변화추이(2015~2022년)")
+echarts4rOutput("my_echarts")
+# plotOutput("my_ggplot")
+```
+
+```{shinylive-r}
+#| standalone: true
+#| context: server
+
+  output$my_tmap <- renderLeaflet({
     my_tmap <- tm_shape(sigungu_data) + 
       tm_polygons(
         col = "index",
@@ -478,15 +496,20 @@ server <- function(input, output, session){
       tmap_leaflet(my_tmap, in.shiny = TRUE)
   })
   
+
   observeEvent(input$my_tmap_shape_click, {
     click <- input$my_tmap_shape_click
     if (!is.null(click)) {
       clicked_id <- click$id
       clicked_id <- gsub("[.]", " ", clicked_id)
       clicked_id <- sigungu_data$SGG1_CD[sigungu_data$SGG1_FNM == clicked_id]
+      # output$map_click_info <- renderPrint({
+      #   paste("Clicked area ID:", clicked_id)
+      # })
     }
     
     region_code <- clicked_id
+    # region_code <- paste0("00", "+", str_sub(region_code, 1, 2), "+", region_code)
     data_api <- getStatData(
       orgId = 101, 
       tblId = "DT_1IN1503", 
@@ -537,11 +560,30 @@ server <- function(input, output, session){
         e_line(index) |> 
         e_tooltip(trigger = "axis")
     })
-    
-  })  
-} 
 
-shinyApp(ui, server)
+    # P_전국 <- data |>
+    #   filter(
+    #     C1 == "00"
+    #   ) |> 
+    #   mutate(
+    #     index = format(index, digits = 3)
+    #   ) |> 
+    #   group_by(fct_relevel(C1_NM, "전국")) |> 
+    #   e_charts(PRD_DE) |> 
+    #   e_line(index) |> 
+    #   e_tooltip(trigger = "axis")
+        
+    # output$my_ggplot <- renderPlot({
+    #   my_ggplot <- ggplot(data, aes(x = PRD_DE, y = index, group = C1_NM)) +
+    #     geom_point() +
+    #     geom_line(linewidth = 0.5) +
+    #     ggtitle(paste0(region, " 인구소멸위험지수 추이(2015~2022년)")) +
+    #     xlab(label = "연도") +
+    #     ylab(label = "인구소멸위험지수") +
+    #     theme(plot.title = element_text(size = 18, hjust=0.5))
+    #   print(my_ggplot)
+    # })
+  })
 
 ```
 
@@ -553,59 +595,61 @@ shinyApp(ui, server)
 
 ## Row
 
+### Column {width="40%"}
+
 ```{shinylive-r}
 #| standalone: true
+#| context: setup
+#| include: false
 
 library(GenAI)
 library(shiny)
 library(tidyverse)
 Sys.setenv(GOOGLE_API = "AIzaSyA05V8q6RuVwKtD91nsFK3VcaLTJ-yRc8E")
 
-ui <- fluidPage(
-  sidebarLayout(
-    sidebarPanel(
-      textAreaInput(inputId = "my_chat", 
-                    width = "100%", height = "100px", 
-                    label = "당신의 질문은?"), 
-      tags$hr(), 
-      actionButton(inputId = "send_button", width = "30%", 
-                   label = "Send")
-    ),
-    mainPanel(
-      # h2("AI의 답변"),
-      textOutput(outputId = "chat_output")
-    )
-  )  
-)
+```
 
-server <- function(input, output){
-  # all.models <- available.models() |> print()
-  google <- genai.google(api = Sys.getenv("GOOGLE_API"),
-                         model = all.models$google$model[1],
-                         version = all.models$google$version[1],
-                         proxy = FALSE)
-  chat_message <- reactiveVal("")
-  
-  observeEvent(input$send_button, {
-    if (input$my_chat != "") {
-      chat_message(input$my_chat)
-    }
+```{shinylive-r}
+#| standalone: true
+#| title: 당신의 질문은?
+textAreaInput(inputId = "my_chat", width = "100%", height = "100px", label = "")
+tags$hr()
+actionButton(inputId = "send_button", width = "30%", label = "Send")
+```
+
+### Column {width="60%"}
+
+```{shinylive-r}
+#| standalone: true
+#| title: AI의 답변
+textOutput(outputId = "chat_output")
+```
+
+```{shinylive-r}
+#| standalone: true
+#| context: server
+
+all.models <- available.models() %>% print()
+google <- genai.google(api = Sys.getenv("GOOGLE_API"),
+                       model = all.models$google$model[1],
+                       version = all.models$google$version[1],
+                       proxy = FALSE)
+
+chat_message <- reactiveVal("")
+
+observeEvent(input$send_button, {
+  chat_message(input$my_chat)
   })
-  
-  special_direction <- ""
-  output$chat_output <- renderText({
-    message <- chat_message()
-    if (message != "") {
-      message <- str_c(message, special_direction)
-      response <- google |> chat(message)
-      response
+
+special_direction <- ""
+output$chat_output <- renderText({
+  message <- chat_message()
+  if (message != "") {
+    message <- str_c(message, special_direction)
+    response <- google %>% chat(message)
+    response
     } else {
-      "Please enter a message."
-    }
-  })
-  
-}
-
-shinyApp(ui, server)
-
+      ""
+  }
+})
 ```
