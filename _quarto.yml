@@ -5,3 +5,6 @@ project:
 
 editor: visual
 
+filters: 
+  - shinylive
+
