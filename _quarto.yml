@@ -1,0 +1,7 @@
+project:
+  title: "02_Examples"
+  type: website
+  output-dir: docs
+
+editor: visual
+
