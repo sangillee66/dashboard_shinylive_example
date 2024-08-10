@@ -18,7 +18,6 @@ format:
 editor: visual
 editor_options: 
   chunk_output_type: console
-server: shiny
 ---
 
 # 임베딩
@@ -293,13 +292,13 @@ P
 ::: {.card title="A Simple 2D Map"}
 #### 
 
-![](images/seoul.jpg)
+![](seoul.jpg)
 :::
 
 ::: {.card title="A 2.5D or 3D Map"}
 #### 
 
-![](images/seoul_3d.png)
+![](seoul_3d.png)
 :::
 
 ::: {.card title="An Animated Map"}
@@ -392,7 +391,8 @@ leaflet(world_data) |>
 
 ### Column {width="50%"}
 
-```{r}
+```{shinylive-r}
+#| standalone: true
 #| context: setup
 #| include: false
 
@@ -440,7 +440,8 @@ sigungu_data <- sigungu_data |>
 
 ```
 
-```{r}
+```{shinylive-r}
+#| standalone: true
 #| context: data
 #| include: false
 
@@ -457,20 +458,23 @@ korea_api <- getStatData(
 
 ```
 
-```{r}
+```{shinylive-r}
+#| standalone: true
 # h4("인구소멸위험지수(2022년)")
 leafletOutput("my_tmap", height="500px") 
 ```
 
 ### Column {width="50%"}
 
-```{r}
+```{shinylive-r}
+#| standalone: true
 # h4("변화추이(2015~2022년)")
 echarts4rOutput("my_echarts")
 # plotOutput("my_ggplot")
 ```
 
-```{r}
+```{shinylive-r}
+#| standalone: true
 #| context: server
 
   output$my_tmap <- renderLeaflet({
@@ -593,7 +597,8 @@ echarts4rOutput("my_echarts")
 
 ### Column {width="40%"}
 
-```{r}
+```{shinylive-r}
+#| standalone: true
 #| context: setup
 #| include: false
 
@@ -604,7 +609,8 @@ Sys.setenv(GOOGLE_API = "AIzaSyA05V8q6RuVwKtD91nsFK3VcaLTJ-yRc8E")
 
 ```
 
-```{r}
+```{shinylive-r}
+#| standalone: true
 #| title: 당신의 질문은?
 textAreaInput(inputId = "my_chat", width = "100%", height = "100px", label = "")
 tags$hr()
@@ -613,12 +619,14 @@ actionButton(inputId = "send_button", width = "30%", label = "Send")
 
 ### Column {width="60%"}
 
-```{r}
+```{shinylive-r}
+#| standalone: true
 #| title: AI의 답변
 textOutput(outputId = "chat_output")
 ```
 
-```{r}
+```{shinylive-r}
+#| standalone: true
 #| context: server
 
 all.models <- available.models() %>% print()
